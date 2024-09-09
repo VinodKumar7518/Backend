@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-group input:invalid {
+            border-color: red;
+        }
+        .form-group input:valid {
+            border-color: green;
+        }
+        .error-message {
+            color: red;
+            display: none;
+            font-size: 0.9em;
+        }
+        .success-message {
+            color: green;
+            display: none;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+        .view-button {
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .view-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Employee Form</h1>
+        <form id="employeeForm">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                <div class="error-message" id="nameError">Name is required and should be at least 2 characters long.</div>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <div class="error-message" id="emailError">Please enter a valid email address.</div>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <div class="success-message" id="successMessage">Employee added successfully!</div>
+        <button onclick="window.location.href='view.html'" class="view-button">View All Employees</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('employeeForm');
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const nameError = document.getElementById('nameError');
+            const emailError = document.getElementById('emailError');
+            const successMessage = document.getElementById('successMessage');
+
+            const validateName = () => {
+                if (nameInput.value.length < 2) {
+                    nameError.style.display = 'block';
+                    return false;
+                } else {
+                    nameError.style.display = 'none';
+                    return true;
+                }
+            };
+
+            const validateEmail = () => {
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(emailInput.value)) {
+                    emailError.style.display = 'block';
+                    return false;
+                } else {
+                    emailError.style.display = 'none';
+                    return true;
+                }
+            };
+
+            nameInput.addEventListener('input', validateName);
+            emailInput.addEventListener('input', validateEmail);
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const isNameValid = validateName();
+                const isEmailValid = validateEmail();
+
+                if (!isNameValid || !isEmailValid) {
+                    return;
+                }
+
+                const formData = new FormData(form);
+                const employee = {};
+                formData.forEach((value, key) => employee[key] = value);
+
+                try {
+                    const response = await fetch('http://localhost:3000/employee', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(employee)
+                    });
+
+                    if (response.ok) {
+                        successMessage.style.display = 'block';
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                        }, 3000);
+                        form.reset();
+                    } else {
+                        throw new Error('Failed to add employee');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('There was an error adding the employee.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

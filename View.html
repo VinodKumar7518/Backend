@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>View Employees</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>All Employees</h1>
+        <ul id="employeeList"></ul>
+        <button onclick="window.location.href='index.html'" class="view-button">Back to Form</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const employeeList = document.getElementById('employeeList'); async function loadEmployees() {
+                const response = await fetch('http://localhost:3000/employee'); const employees = await response.json(); employeeList.innerHTML = '';
+                employees.forEach((employee, index) => {
+                    const li = document.createElement('li'); li.innerHTML = `
+<div class="employee-info">
+<strong>Name:</strong> <span class="name">${employee.name}</span><br>
+<strong>Email:</strong> <span class="email">${employee.email}</span>
+</div>
+<div class="employee-actions">
+<button onclick="editEmployee(${index})">Edit</button>
+<button onclick="deleteEmployee(${index})">Delete</button>
+</div>
+<div class="edit-form">
+<input type="text" class="edit-name" value="${employee.name}" placeholder="Name">
+<input type="email" class="edit-email" value="${employee.email}" placeholder="Email">
+<button onclick="updateEmployee(${index})">Update</button>
+<button class="cancel" onclick="cancelEdit(${index})">Cancel</button>
+</div>	`; employeeList.appendChild(li);
+                });
+            }
+            window.editEmployee = (index) => {
+                const li = employeeList.children[index];
+                li.querySelector('.edit-form').style.display = 'block';
+            }; window.cancelEdit = (index) => {
+                const li = employeeList.children[index]; li.querySelector('.edit-form').style.display = 'none';
+            };
+            window.updateEmployee = async (index) => {
+                const li = employeeList.children[index];
+                const name = li.querySelector('.edit-name').value; const email = li.querySelector('.edit-email').value;
+                await fetch(`http://localhost:3000/employee/${index}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }, body: JSON.stringify({ name, email })
+                });
+                loadEmployees();
+            }; window.deleteEmployee = async (index) => {
+                await fetch(`http://localhost:3000/employee/${index}`, {
+                    method: 'DELETE'
+                }); loadEmployees();
+            };
+            loadEmployees();
+        });
+    </script>
+
+</body>
+
+</html>
